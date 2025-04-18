@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  nginx: 
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - auth
+      - matchmaking
+  
+  auth:
+    buid: ./auth-service
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/auth_db
+    depends_on:
+      -db
+
+  matchmaking:
+    build: ./matchmaking-service
+
+  db:
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: auth_db
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-init.d/init.sql
